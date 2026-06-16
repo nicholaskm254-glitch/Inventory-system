@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "Zrx3CFdodLA=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\t480s\\Documents\\FINTECH\\STOCK WEB APP\\inventory-system\\InventoryApi\\InventoryApi.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\t480s\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.8\\microsoft.aspnetcore.openapi.10.0.8.nupkg.sha512",
+    "C:\\Users\\t480s\\.nuget\\packages\\microsoft.openapi\\2.0.0\\microsoft.openapi.2.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -1,65 +1,98 @@
-import Image from "next/image";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
+
+import HamburgerMenu from "@/components/HamburgerMenu";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const [members, setMembers] = useState<any[]>([]);
+  const [stock, setStock] = useState<any[]>([]);
+  const [sales, setSales] = useState<any[]>([]);
+
+  // 🔹 FETCH ALL DATA
+  const loadData = async () => {
+    try {
+      const membersRes = await fetch("http://localhost:5148/api/members");
+      const stockRes = await fetch("http://localhost:5148/api/products");
+      const salesRes = await fetch("http://localhost:5148/api/sales");
+
+      const membersData = await membersRes.json();
+      const stockData = await stockRes.json();
+      const salesData = await salesRes.json();
+
+      setMembers(membersData);
+      setStock(stockData);
+      setSales(salesData);
+    } catch (err) {
+      console.log("Dashboard load error:", err);
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      await loadData();
+    };
+
+    fetchData();
+  }, []);
+
+  // 🔹 CALCULATIONS
+   const totalStockValue = stock.reduce(
+  (sum, item) =>
+    sum +
+    (Number(item.quantityInStock) || 0) *
+    (Number(item.price) || 0),
+  0
+);
+  const totalRevenue = sales.reduce(
+    (sum, sale) => sum + (sale.quantity * sale.price),
+    0
+  );
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="p-6">
+      <HamburgerMenu />
+
+      <h1 className="text-4xl font-bold mt-4 mb-6">
+        Inventory Management Dashboard
+      </h1>
+
+      {/* CARDS */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-background shadow rounded p-4">
+          <h2 className="text-gray-500">Members</h2>
+          <p className="text-3xl font-bold">{members.length}</p>
+        </div>
+
+        <div className="bg-background shadow rounded p-4">
+          <h2 className="text-gray-500">Products</h2>
+          <p className="text-3xl font-bold">{stock.length}</p>
+        </div>
+
+        <div className="bg-background shadow rounded p-4">
+          <h2 className="text-gray-500">Sales</h2>
+          <p className="text-3xl font-bold">{sales.length}</p>
+        </div>
+
+        <div className="bg-background shadow rounded p-4">
+          <h2 className="text-gray-500">Stock Value</h2>
+          <p className="text-3xl font-bold">
+            KES {totalStockValue}
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </div>
+
+      {/* SUMMARY */}
+      <div className="mt-8 bg-background shadow rounded p-4">
+        <h2 className="text-xl font-bold mb-4">
+          System Summary
+        </h2>
+
+        <p>Total Members: {members.length}</p>
+        <p>Total Products: {stock.length}</p>
+        <p>Total Sales Recorded: {sales.length}</p>
+        <p>Total Revenue: KES {totalRevenue}</p>
+      </div>
     </div>
   );
 }
