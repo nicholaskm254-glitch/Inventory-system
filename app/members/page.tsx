@@ -16,10 +16,6 @@ export default function MembersPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 🔹 FORM STATES (ADD MEMBER)
-  const [fullName, setFullName] = useState("");
-  const [role, setRole] = useState("");
-
   // 🔹 FETCH MEMBERS
   const loadMembers = () => {
     setLoading(true);
@@ -44,32 +40,7 @@ export default function MembersPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  // 🔹 ADD MEMBER
-  const addMember = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        fullName,
-        role,
-      }),
-    });
-
-    if (res.ok) {
-      alert("Member added successfully!");
-
-      setFullName("");
-      setRole("");
-
-      loadMembers(); // refresh table instantly
-    } else {
-      alert("Failed to add member");
-    }
-  };
+ 
 
   return (
     <div className="p-6">
@@ -79,27 +50,7 @@ export default function MembersPage() {
         Members Management
       </h1>
 
-      {/* 🔹 ADD MEMBER FORM */}
-      <form onSubmit={addMember} className="mb-6 flex gap-3 flex-wrap">
-        <input
-          className="border p-2"
-          placeholder="Full Name"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-        />
-
-        <input
-          className="border p-2"
-          placeholder="Role (e.g Manager, Cashier)"
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-        />
-
-        <button className="bg-green-600 text-white px-4 py-2">
-          Add Member
-        </button>
-      </form>
-
+     
       {/* 🔹 TABLE */}
       <table className="w-full border">
         <thead>
