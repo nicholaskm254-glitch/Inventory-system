@@ -1,7 +1,7 @@
 //* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import HamburgerMenu from "@/components/HamburgerMenu";
 
 type Member = {
@@ -11,13 +11,13 @@ type Member = {
 };
 
 export default function MembersPage() {
-  const API_URL = "http://localhost:5148/api/members";
+  const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/api/Members`;
 
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
 
   // 🔹 FETCH MEMBERS
-  const loadMembers = () => {
+  const loadMembers = useCallback(() => {
     setLoading(true);
 
     fetch(API_URL)
@@ -30,7 +30,7 @@ export default function MembersPage() {
         console.log(err);
         setLoading(false);
       });
-  };
+  }, [API_URL]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -38,7 +38,7 @@ export default function MembersPage() {
     }, 0);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [loadMembers]);
 
  
 

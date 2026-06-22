@@ -15,9 +15,9 @@ export default function ReportsPage() {
     const fetchReports = async () => {
       try {
         const [stockRes, salesRes] = await Promise.all([
-          fetch("http://localhost:5148/api/products"),  
-          fetch("http://localhost:5148/api/sales"),
-        ]);
+  fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/Products`),
+  fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/Sales`),
+]);
 
         const stockData = await stockRes.json();
         const salesData = await salesRes.json();

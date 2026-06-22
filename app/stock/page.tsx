@@ -16,40 +16,48 @@ export default function StockPage() {
 
   const API = process.env.NEXT_PUBLIC_API_URL;
 
-  // 🔹 LOAD STOCK
+  if (!API) {
+    throw new Error("NEXT_PUBLIC_API_URL is not defined");
+  }
+
+  // LOAD STOCK
   const loadStock = useCallback(async () => {
     try {
       setLoading(true);
 
-      const res = await fetch(`${API}/products`);
+      const res = await fetch(`${API}/api/Products`);
+
       console.log("API URL:", API);
       console.log("STATUS:", res.status);
-      const data = await res.json();
 
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
       setStock(data || []);
     } catch (err) {
-      console.log("Error loading stock:", err);
+      console.error("Error loading stock:", err);
     } finally {
       setLoading(false);
     }
   }, [API]);
 
   useEffect(() => {
-    // defer calling loadStock to avoid synchronous setState inside the effect
-    const t = setTimeout(() => {
-      loadStock();
-    }, 0);
+    const fetchStock = async () => {
+      await loadStock();
+    };
 
-    return () => clearTimeout(t);
+    fetchStock();
   }, [loadStock]);
 
-  // 🔼 ADD STOCK
+  // ADD STOCK
   const addStock = async () => {
     if (!restockForm.productId || !restockForm.quantity) return;
 
     try {
       const res = await fetch(
-        `${API}/products/${restockForm.productId}/add-stock`,
+        `${API}/api/Products/${restockForm.productId}/add-stock`,
         {
           method: "PUT",
           headers: {
@@ -69,14 +77,18 @@ export default function StockPage() {
         return;
       }
 
-      setRestockForm({ productId: "", quantity: "" });
+      setRestockForm({
+        productId: "",
+        quantity: "",
+      });
+
       await loadStock();
     } catch (err) {
-      console.log("Error adding stock:", err);
+      console.error("Error adding stock:", err);
     }
   };
 
-  // 🔍 SEARCH FILTER
+  // SEARCH FILTER
   const filteredStock = stock.filter((item) =>
     item.name?.toLowerCase().includes(search.toLowerCase())
   );
@@ -89,7 +101,6 @@ export default function StockPage() {
         Stock Management
       </h1>
 
-      {/* SEARCH */}
       <input
         className="border p-2 mb-4 w-full"
         placeholder="Search products..."
@@ -97,7 +108,6 @@ export default function StockPage() {
         onChange={(e) => setSearch(e.target.value)}
       />
 
-      {/* RESTOCK FORM */}
       <div className="border p-4 mb-4 rounded">
         <h2 className="font-semibold mb-3">Restock Product</h2>
 
@@ -138,7 +148,6 @@ export default function StockPage() {
         </div>
       </div>
 
-      {/* TABLE */}
       {loading ? (
         <p>Loading stock...</p>
       ) : (
@@ -170,7 +179,7 @@ export default function StockPage() {
                     <td className="border p-2">{quantity}</td>
                     <td className="border p-2">{price}</td>
                     <td className="border p-2">
-                      {quantity * price}
+                      {(quantity * price).toFixed(2)}
                     </td>
                   </tr>
                 );
