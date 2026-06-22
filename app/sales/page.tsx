@@ -16,47 +16,46 @@ export default function SalesPage() {
 
   const API = process.env.NEXT_PUBLIC_API_URL;
 
-  // 🔹 LOAD DATA
+  // 🔥 LOAD PRODUCTS + SALES
   const loadData = useCallback(async () => {
+    if (!API) return;
+
     try {
       setLoading(true);
 
       const [productsRes, salesRes] = await Promise.all([
-        fetch(`${API}/products`),
-        fetch(`${API}/sales`),
+        fetch(`${API}/api/Products`),
+        fetch(`${API}/api/Sales`),
       ]);
+
+      if (!productsRes.ok || !salesRes.ok) {
+        throw new Error("Failed to fetch data");
+      }
 
       const productsData = await productsRes.json();
       const salesData = await salesRes.json();
 
-      console.log("PRODUCTS:", productsData);
-      console.log("SALES:", salesData);
-
-      setProducts(productsData || []);
-      setSales(salesData || []);
+      setProducts(Array.isArray(productsData) ? productsData : []);
+      setSales(Array.isArray(salesData) ? salesData : []);
     } catch (err) {
-      console.log("Error loading data:", err);
+      console.error("Error loading data:", err);
     } finally {
       setLoading(false);
     }
   }, [API]);
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      loadData();
-    }, 0);
+    if (!API) return;
 
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [loadData]);
+    void Promise.resolve().then(loadData);
+  }, [loadData, API]);
 
   // 🔥 RECORD SALE
   const recordSale = async () => {
-    if (!form.productId || !form.quantity) return;
+    if (!API || !form.productId || !form.quantity) return;
 
     try {
-      const res = await fetch(`${API}/sales`, {
+      const res = await fetch(`${API}/api/Sales`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -67,14 +66,19 @@ export default function SalesPage() {
         }),
       });
 
-      const result = await res.text();
-      console.log("SALE RESPONSE:", result);
+      const text = await res.text();
+      console.log("SALE RESPONSE:", text);
+
+      if (!res.ok) {
+        alert("Failed to record sale");
+        return;
+      }
 
       setForm({ productId: "", quantity: "" });
 
       await loadData();
     } catch (err) {
-      console.log("Error recording sale:", err);
+      console.error("Error recording sale:", err);
     }
   };
 
@@ -85,9 +89,9 @@ export default function SalesPage() {
       <h1 className="text-3xl font-bold mb-6">Sales Entry</h1>
 
       {/* FORM */}
-      <div className="bg-background p-4 rounded mb-6">
+      <div className="p-4 border rounded mb-6">
         <select
-          className="border p-2 w-full mb-3 text-black bg-white"
+          className="border p-2 w-full mb-3"
           value={form.productId}
           onChange={(e) =>
             setForm({ ...form, productId: e.target.value })
@@ -95,7 +99,7 @@ export default function SalesPage() {
         >
           <option value="">Select Product</option>
 
-          {products.map((p: any) => (
+          {products.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name} (Stock: {p.quantityInStock})
             </option>
@@ -144,10 +148,10 @@ export default function SalesPage() {
                 </td>
               </tr>
             ) : (
-              sales.map((s: any) => (
+              sales.map((s) => (
                 <tr key={s.id}>
                   <td className="border p-2">
-                    {s.productName || s.productId}
+                    {s.productName ?? s.productId}
                   </td>
                   <td className="border p-2">{s.quantity}</td>
                   <td className="border p-2">{s.type}</td>
