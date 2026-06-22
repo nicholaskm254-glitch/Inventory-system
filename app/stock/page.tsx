@@ -1,55 +1,82 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import HamburgerMenu from "@/components/HamburgerMenu";
 
 export default function StockPage() {
   const [stock, setStock] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+
   const [restockForm, setRestockForm] = useState({
-  productId: "",
-  quantity: ""
-});
-const loadStock = async () => {
-  try {
-    const res = await fetch("http://localhost:5148/api/products");
-    const data = await res.json();
-    setStock(data);
-  } catch (err) {
-    console.log("Error loading stock:", err);
-  } finally {
-    setLoading(false);
-  }
-};
-
-const addStock = async () => {
-  if (!restockForm.productId || !restockForm.quantity) return;
-
-  await fetch(`http://localhost:5148/api/products/${restockForm.productId}/add-stock`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(Number(restockForm.quantity)),
+    productId: "",
+    quantity: "",
   });
 
-  setRestockForm({ productId: "", quantity: "" });
+  const API = process.env.NEXT_PUBLIC_API_URL;
 
-  await loadStock(); // refresh table
-};
+  // 🔹 LOAD STOCK
+  const loadStock = useCallback(async () => {
+    try {
+      setLoading(true);
 
-  // 🔹 LOAD STOCK FROM API
+      const res = await fetch(`${API}/products`);
+      console.log("API URL:", API);
+      console.log("STATUS:", res.status);
+      const data = await res.json();
+
+      setStock(data || []);
+    } catch (err) {
+      console.log("Error loading stock:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [API]);
+
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void loadStock();
+    // defer calling loadStock to avoid synchronous setState inside the effect
+    const t = setTimeout(() => {
+      loadStock();
     }, 0);
 
-    return () => window.clearTimeout(timer);
-  }, []);
+    return () => clearTimeout(t);
+  }, [loadStock]);
 
-  // 🔹 SEARCH FILTER
+  // 🔼 ADD STOCK
+  const addStock = async () => {
+    if (!restockForm.productId || !restockForm.quantity) return;
+
+    try {
+      const res = await fetch(
+        `${API}/products/${restockForm.productId}/add-stock`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(Number(restockForm.quantity)),
+        }
+      );
+
+      console.log("STATUS:", res.status);
+
+      const text = await res.text();
+      console.log("RESPONSE:", text);
+
+      if (!res.ok) {
+        alert("Failed: " + text);
+        return;
+      }
+
+      setRestockForm({ productId: "", quantity: "" });
+      await loadStock();
+    } catch (err) {
+      console.log("Error adding stock:", err);
+    }
+  };
+
+  // 🔍 SEARCH FILTER
   const filteredStock = stock.filter((item) =>
     item.name?.toLowerCase().includes(search.toLowerCase())
   );
@@ -73,21 +100,34 @@ const addStock = async () => {
       {/* RESTOCK FORM */}
       <div className="border p-4 mb-4 rounded">
         <h2 className="font-semibold mb-3">Restock Product</h2>
+
         <div className="grid gap-3 md:grid-cols-3">
           <input
             className="border p-2"
             placeholder="Product ID"
             value={restockForm.productId}
-            onChange={(e) => setRestockForm({ ...restockForm, productId: e.target.value })}
+            onChange={(e) =>
+              setRestockForm({
+                ...restockForm,
+                productId: e.target.value,
+              })
+            }
           />
+
           <input
             className="border p-2"
             type="number"
             min="1"
             placeholder="Quantity"
             value={restockForm.quantity}
-            onChange={(e) => setRestockForm({ ...restockForm, quantity: e.target.value })}
+            onChange={(e) =>
+              setRestockForm({
+                ...restockForm,
+                quantity: e.target.value,
+              })
+            }
           />
+
           <button
             type="button"
             className="bg-blue-600 text-white p-2 rounded"
@@ -98,7 +138,7 @@ const addStock = async () => {
         </div>
       </div>
 
-      {/* LOADING */}
+      {/* TABLE */}
       {loading ? (
         <p>Loading stock...</p>
       ) : (
@@ -120,26 +160,17 @@ const addStock = async () => {
                 </td>
               </tr>
             ) : (
-              filteredStock.map((item) => {
-                const quantityInStock = Number(item.quantityInStock) || 0;
+              filteredStock.map((item: any) => {
+                const quantity = Number(item.quantityInStock) || 0;
                 const price = Number(item.price) || 0;
 
                 return (
                   <tr key={item.id}>
+                    <td className="border p-2">{item.name}</td>
+                    <td className="border p-2">{quantity}</td>
+                    <td className="border p-2">{price}</td>
                     <td className="border p-2">
-                      {item.name}
-                    </td>
-
-                    <td className="border p-2">
-                      {quantityInStock}
-                    </td>
-
-                    <td className="border p-2">
-                      {price}
-                    </td>
-
-                    <td className="border p-2">
-                      {quantityInStock * price}
+                      {quantity * price}
                     </td>
                   </tr>
                 );

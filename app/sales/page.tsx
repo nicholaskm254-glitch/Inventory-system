@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import HamburgerMenu from "@/components/HamburgerMenu";
 
 export default function SalesPage() {
@@ -11,17 +11,19 @@ export default function SalesPage() {
 
   const [form, setForm] = useState({
     productId: "",
-    QuantityInStock: "",
+    quantity: "",
   });
 
+  const API = process.env.NEXT_PUBLIC_API_URL;
+
   // 🔹 LOAD DATA
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
 
       const [productsRes, salesRes] = await Promise.all([
-        fetch("http://localhost:5148/api/products"),
-        fetch("http://localhost:5148/api/sales"),
+        fetch(`${API}/products`),
+        fetch(`${API}/sales`),
       ]);
 
       const productsData = await productsRes.json();
@@ -37,7 +39,7 @@ export default function SalesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -47,28 +49,28 @@ export default function SalesPage() {
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, []);
+  }, [loadData]);
 
   // 🔥 RECORD SALE
   const recordSale = async () => {
-    if (!form.productId || !form.QuantityInStock) return;
+    if (!form.productId || !form.quantity) return;
 
     try {
-      const res = await fetch("http://localhost:5148/api/sales", {
+      const res = await fetch(`${API}/sales`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           productId: Number(form.productId),
-          quantity: Number(form.QuantityInStock),
+          quantity: Number(form.quantity),
         }),
       });
 
       const result = await res.text();
       console.log("SALE RESPONSE:", result);
 
-      setForm({ productId: "", QuantityInStock: "" });
+      setForm({ productId: "", quantity: "" });
 
       await loadData();
     } catch (err) {
@@ -85,28 +87,28 @@ export default function SalesPage() {
       {/* FORM */}
       <div className="bg-background p-4 rounded mb-6">
         <select
-  className="border p-2 w-full mb-3 text-black bg-white"
-  value={form.productId}
-  onChange={(e) =>
-    setForm({ ...form, productId: e.target.value })
-  }
->
-  <option value="">Select Product</option>
+          className="border p-2 w-full mb-3 text-black bg-white"
+          value={form.productId}
+          onChange={(e) =>
+            setForm({ ...form, productId: e.target.value })
+          }
+        >
+          <option value="">Select Product</option>
 
-  {products.map((p: any) => (
-    <option key={p.id} value={p.id}>
-      {p.name} (Stock: {p.quantityInStock})
-    </option>
-  ))}
-</select>
+          {products.map((p: any) => (
+            <option key={p.id} value={p.id}>
+              {p.name} (Stock: {p.quantityInStock})
+            </option>
+          ))}
+        </select>
 
         <input
           type="number"
           placeholder="Quantity Sold"
           className="border p-2 w-full mb-3"
-          value={form.QuantityInStock}
+          value={form.quantity}
           onChange={(e) =>
-            setForm({ ...form, QuantityInStock: e.target.value })
+            setForm({ ...form, quantity: e.target.value })
           }
         />
 
@@ -150,9 +152,7 @@ export default function SalesPage() {
                   <td className="border p-2">{s.quantity}</td>
                   <td className="border p-2">{s.type}</td>
                   <td className="border p-2">
-                    {s.date
-                      ? new Date(s.date).toLocaleString()
-                      : ""}
+                    {s.date ? new Date(s.date).toLocaleString() : ""}
                   </td>
                 </tr>
               ))
