@@ -9,32 +9,37 @@ export default function StockPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const [restockForm, setRestockForm] = useState({
-    productId: "",
-    quantity: "",
-  });
-
   const API = process.env.NEXT_PUBLIC_API_URL;
 
   if (!API) {
     throw new Error("NEXT_PUBLIC_API_URL is not defined");
   }
 
+  // -----------------------------
+  // FORMS
+  // -----------------------------
+  const [newProduct, setNewProduct] = useState({
+    name: "",
+    sku: "",
+    price: "",
+    quantityInStock: "",
+  });
+
+  const [restockForm, setRestockForm] = useState({
+    productId: "",
+    quantity: "",
+  });
+
+  // -----------------------------
   // LOAD STOCK
+  // -----------------------------
   const loadStock = useCallback(async () => {
     try {
       setLoading(true);
 
       const res = await fetch(`${API}/api/Products`);
-
-      console.log("API URL:", API);
-      console.log("STATUS:", res.status);
-
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
-
       const data = await res.json();
+
       setStock(data || []);
     } catch (err) {
       console.error("Error loading stock:", err);
@@ -44,51 +49,90 @@ export default function StockPage() {
   }, [API]);
 
   useEffect(() => {
-    const fetchStock = async () => {
-      await loadStock();
+    const initializeStock = async () => {
+      try {
+        setLoading(true);
+
+        const res = await fetch(`${API}/api/Products`);
+        const data = await res.json();
+
+        setStock(data || []);
+      } catch (err) {
+        console.error("Error loading stock:", err);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    fetchStock();
-  }, [loadStock]);
+    void initializeStock();
+  }, [API]);
 
-  // ADD STOCK
+  // -----------------------------
+  // ADD NEW PRODUCT
+  // -----------------------------
+  const addProduct = async () => {
+    await fetch(`${API}/api/Products`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: newProduct.name,
+        sku: newProduct.sku,
+        price: Number(newProduct.price),
+        quantityInStock: Number(newProduct.quantityInStock),
+      }),
+    });
+
+    setNewProduct({
+      name: "",
+      sku: "",
+      price: "",
+      quantityInStock: "",
+    });
+
+    await loadStock();
+  };
+
+  // -----------------------------
+  // DELETE PRODUCT
+  // -----------------------------
+  const deleteProduct = async (id: number) => {
+    await fetch(`${API}/api/Products/${id}`, {
+      method: "DELETE",
+    });
+
+    await loadStock();
+  };
+
+  // -----------------------------
+  // RESTOCK PRODUCT
+  // -----------------------------
   const addStock = async () => {
     if (!restockForm.productId || !restockForm.quantity) return;
 
-    try {
-      const res = await fetch(
-        `${API}/api/Products/${restockForm.productId}/add-stock`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(Number(restockForm.quantity)),
-        }
-      );
-
-      console.log("STATUS:", res.status);
-
-      const text = await res.text();
-      console.log("RESPONSE:", text);
-
-      if (!res.ok) {
-        alert("Failed: " + text);
-        return;
+    await fetch(
+      `${API}/api/Products/${restockForm.productId}/add-stock`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(Number(restockForm.quantity)),
       }
+    );
 
-      setRestockForm({
-        productId: "",
-        quantity: "",
-      });
+    setRestockForm({
+      productId: "",
+      quantity: "",
+    });
 
-      await loadStock();
-    } catch (err) {
-      console.error("Error adding stock:", err);
-    }
+    await loadStock();
   };
 
-  // SEARCH FILTER
+  // -----------------------------
+  // FILTER
+  // -----------------------------
   const filteredStock = stock.filter((item) =>
     item.name?.toLowerCase().includes(search.toLowerCase())
   );
@@ -101,13 +145,62 @@ export default function StockPage() {
         Stock Management
       </h1>
 
-      <input
-        className="border p-2 mb-4 w-full"
-        placeholder="Search products..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
+      {/* ---------------- ADD NEW PRODUCT ---------------- */}
+      <div className="border p-4 mb-4 rounded">
+        <h2 className="font-semibold mb-3">Add New Product</h2>
 
+        <div className="grid gap-3 md:grid-cols-4">
+          <input
+            className="border p-2"
+            placeholder="Name"
+            value={newProduct.name}
+            onChange={(e) =>
+              setNewProduct({ ...newProduct, name: e.target.value })
+            }
+          />
+
+          <input
+            className="border p-2"
+            placeholder="SKU"
+            value={newProduct.sku}
+            onChange={(e) =>
+              setNewProduct({ ...newProduct, sku: e.target.value })
+            }
+          />
+
+          <input
+            className="border p-2"
+            type="number"
+            placeholder="Price"
+            value={newProduct.price}
+            onChange={(e) =>
+              setNewProduct({ ...newProduct, price: e.target.value })
+            }
+          />
+
+          <input
+            className="border p-2"
+            type="number"
+            placeholder="Stock"
+            value={newProduct.quantityInStock}
+            onChange={(e) =>
+              setNewProduct({
+                ...newProduct,
+                quantityInStock: e.target.value,
+              })
+            }
+          />
+        </div>
+
+        <button
+          className="mt-3 bg-green-600 text-white px-4 py-2 rounded"
+          onClick={addProduct}
+        >
+          Add Product
+        </button>
+      </div>
+
+      {/* ---------------- RESTOCK ---------------- */}
       <div className="border p-4 mb-4 rounded">
         <h2 className="font-semibold mb-3">Restock Product</h2>
 
@@ -127,7 +220,6 @@ export default function StockPage() {
           <input
             className="border p-2"
             type="number"
-            min="1"
             placeholder="Quantity"
             value={restockForm.quantity}
             onChange={(e) =>
@@ -139,7 +231,6 @@ export default function StockPage() {
           />
 
           <button
-            type="button"
             className="bg-blue-600 text-white p-2 rounded"
             onClick={addStock}
           >
@@ -148,6 +239,15 @@ export default function StockPage() {
         </div>
       </div>
 
+      {/* ---------------- SEARCH ---------------- */}
+      <input
+        className="border p-2 mb-4 w-full"
+        placeholder="Search products..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+
+      {/* ---------------- TABLE ---------------- */}
       {loading ? (
         <p>Loading stock...</p>
       ) : (
@@ -158,13 +258,14 @@ export default function StockPage() {
               <th className="border p-2">Quantity</th>
               <th className="border p-2">Price</th>
               <th className="border p-2">Total Value</th>
+              <th className="border p-2">Action</th>
             </tr>
           </thead>
 
           <tbody>
             {filteredStock.length === 0 ? (
               <tr>
-                <td colSpan={4} className="text-center p-4">
+                <td colSpan={5} className="text-center p-4">
                   No stock found
                 </td>
               </tr>
@@ -180,6 +281,16 @@ export default function StockPage() {
                     <td className="border p-2">{price}</td>
                     <td className="border p-2">
                       {(quantity * price).toFixed(2)}
+                    </td>
+
+                    {/* DELETE */}
+                    <td className="border p-2">
+                      <button
+                        onClick={() => deleteProduct(item.id)}
+                        className="bg-red-600 text-white px-3 py-1 rounded"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 );
