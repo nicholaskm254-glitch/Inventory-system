@@ -61,7 +61,8 @@ export default function ReportsPage() {
   0
 );
   return (
-    <div className="p-6">
+   <div className="min-h-screen sm:px-6 lg:px-10">
+  <div className="max-w-7xl mx-auto">
       <HamburgerMenu />
 
       <h1 className="text-3xl font-bold mt-4 mb-6">
@@ -98,7 +99,8 @@ export default function ReportsPage() {
           Recent Sales
         </h2>
 
-        <table className="w-full border">
+        <div className="overflow-x-auto">
+            <table className="min-w-full border">
           <thead>
             <tr>
               <th className="border p-2">Product</th>
@@ -147,6 +149,7 @@ export default function ReportsPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* STOCK TABLE */}
@@ -197,6 +200,7 @@ export default function ReportsPage() {
           </tbody>
         </table>
       </div>
+    </div>
     </div>
   );
 }

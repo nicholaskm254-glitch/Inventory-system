@@ -83,8 +83,9 @@ export default function SalesPage() {
   };
 
   return (
-    <div className="p-6">
-      <HamburgerMenu />
+    <div className="min-h-screen sm:px-6 lg:px-10">
+  <div className="max-w-7xl mx-auto">   
+       <HamburgerMenu />
 
       <h1 className="text-3xl font-bold mb-6">Sales Entry</h1>
 
@@ -130,7 +131,8 @@ export default function SalesPage() {
       {loading ? (
         <p>Loading...</p>
       ) : (
-        <table className="w-full border">
+        <div className="overflow-x-auto">
+  <table className="min-w-full border">
           <thead>
             <tr>
               <th className="border p-2">Product</th>
@@ -163,7 +165,9 @@ export default function SalesPage() {
             )}
           </tbody>
         </table>
+        </div>
       )}
+    </div>
     </div>
   );
 }

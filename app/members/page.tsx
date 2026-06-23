@@ -76,7 +76,8 @@ export default function MembersPage() {
   };
 
   return (
-    <div className="p-6">
+    <div className="min-h-screen px-3 sm:px-6 lg:px-10">
+  <div className="max-w-7xl mx-auto">
       <HamburgerMenu />
 
       <h1 className="text-3xl font-bold mt-4 mb-6">
@@ -112,7 +113,8 @@ export default function MembersPage() {
       </div>
 
       {/* 🔹 TABLE */}
-      <table className="w-full border">
+      <div className="overflow-x-auto">
+       <table className="min-w-full border">
         <thead>
           <tr>
             <th className="border p-2">ID</th>
@@ -156,6 +158,8 @@ export default function MembersPage() {
           )}
         </tbody>
       </table>
+      </div>
+    </div>
     </div>
   );
 }

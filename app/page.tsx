@@ -55,7 +55,8 @@ useEffect(() => {
   );
 
   return (
-    <div className="p-6">
+    <div className="min-h-screen px-3 sm:px-6 lg:px-10">
+  <div className="max-w-7xl mx-auto">
       <HamburgerMenu />
 
       <h1 className="text-4xl font-bold mt-4 mb-6">
@@ -63,7 +64,7 @@ useEffect(() => {
       </h1>
 
       {/* CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-background shadow rounded p-4">
           <h2 className="text-gray-500">Members</h2>
           <p className="text-3xl font-bold">{members.length}</p>
@@ -98,6 +99,7 @@ useEffect(() => {
         <p>Total Sales Recorded: {sales.length}</p>
         <p>Total Revenue: KES {totalRevenue}</p>
       </div>
+    </div>
     </div>
   );
 }
