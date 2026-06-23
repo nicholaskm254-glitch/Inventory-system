@@ -103,8 +103,8 @@ export default function ReportsPage() {
             <tr>
               <th className="border p-2">Product</th>
               <th className="border p-2">Quantity</th>
-              <th className="border p-2">Price</th>
               <th className="border p-2">Type</th>
+              <th className="border p-2">Price</th>
             </tr>
           </thead>
 
