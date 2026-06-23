@@ -121,17 +121,25 @@ export default function ReportsPage() {
   <td className="border p-2">{sale.productName}</td>
   <td className="border p-2">{sale.quantity}</td>
 
-  <td className="border p-2">
-    <span
-      className={
-        sale.type === "SALE"
-          ? "bg-green-600 text-white px-2 py-1 rounded"
-          : "bg-red-600 text-white px-2 py-1 rounded"
-      }
-    >
-      {sale.type}
-    </span>
-  </td>
+<td className="border p-2">
+  <span
+    className={
+      sale.type?.toUpperCase() === "SALE"
+        ? "bg-red-600 text-white px-2 py-1 rounded flex items-center gap-1"
+        : "bg-green-600 text-white px-2 py-1 rounded flex items-center gap-1"
+    }
+  >
+    {sale.type?.toUpperCase() === "SALE" ? (
+      <>
+        <span>📉</span> SALE
+      </>
+    ) : (
+      <>
+        <span>📈</span> RESTOCK
+      </>
+    )}
+  </span>
+</td>
 
   <td className="border p-2">{sale.price}</td>
 </tr>
