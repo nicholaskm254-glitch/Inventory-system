@@ -82,7 +82,7 @@ export default function MembersPage() {
       </h1>
 
       {/* ➕ ADD MEMBER FORM */}
-      <div className="mb-6 p-4 bg-white shadow rounded">
+      <div className="mb-6 p-4 bg-background rounded shadow">
         <h2 className="font-bold mb-2">Add Member</h2>
 
         <input
@@ -103,7 +103,7 @@ export default function MembersPage() {
 
         <button
           onClick={addMember}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
+          className="bg-blue-400"
         >
           Add
         </button>
