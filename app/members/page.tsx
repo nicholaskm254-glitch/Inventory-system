@@ -51,19 +51,21 @@ export default function MembersPage() {
   };
 
   // ➕ ADD MEMBER
-  const addMember = async () => {
-    if (!form.fullName || !form.role) return;
+     const addMember = async () => {
+  if (!form.fullName || !form.role) return;
 
-    await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form)
-    });
+  await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      fullName: form.fullName.toUpperCase(),
+      role: form.role.toUpperCase(),
+    }),
+  });
 
-    setForm({ fullName: "", role: "" });
-    loadMembers();
-  };
-
+  setForm({ fullName: "", role: "" });
+  loadMembers();
+};
   // 🗑 DELETE MEMBER
   const deleteMember = async (id: number) => {
     await fetch(`${API_URL}/${id}`, {
