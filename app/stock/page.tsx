@@ -77,8 +77,9 @@ export default function StockPage() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        name: newProduct.name,
-        sku: newProduct.sku,
+        ...newProduct,
+        name: newProduct.name.toUpperCase(),
+        sku: newProduct.sku.toUpperCase(),
         price: Number(newProduct.price),
         quantityInStock: Number(newProduct.quantityInStock),
       }),
