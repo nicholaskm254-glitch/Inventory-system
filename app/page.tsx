@@ -4,46 +4,51 @@
 import HamburgerMenu from "@/components/HamburgerMenu";
 import { useEffect, useState } from "react";
 
+const API_BASE = "https://inventory-api-4-wzj2.onrender.com/api";
+
 export default function Home() {
   const [members, setMembers] = useState<any[]>([]);
   const [stock, setStock] = useState<any[]>([]);
   const [sales, setSales] = useState<any[]>([]);
-
-  // 🔹 FETCH ALL DATA
+  const isEqual = (a: any[], b: any[]) =>
+  JSON.stringify(a) === JSON.stringify(b);
+useEffect(() => {
   const loadData = async () => {
     try {
-      const membersRes = await fetch("http://localhost:5148/api/members");
-      const stockRes = await fetch("http://localhost:5148/api/products");
-      const salesRes = await fetch("http://localhost:5148/api/sales");
+      const membersRes = await fetch(`${API_BASE}/members`);
+      const stockRes = await fetch(`${API_BASE}/products`);
+      const salesRes = await fetch(`${API_BASE}/sales`);
 
       const membersData = await membersRes.json();
       const stockData = await stockRes.json();
       const salesData = await salesRes.json();
 
-      setMembers(membersData);
-      setStock(stockData);
-      setSales(salesData);
+      if (!isEqual(membersData, members)) setMembers(membersData);
+      if (!isEqual(stockData, stock)) setStock(stockData);
+      if (!isEqual(salesData, sales)) setSales(salesData);
     } catch (err) {
       console.log("Dashboard load error:", err);
     }
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      await loadData();
-    };
+  loadData(); // initial load
 
-    fetchData();
-  }, []);
+  const interval = setInterval(() => {
+    loadData(); // refresh every 5 seconds
+  }, 5000);
 
-  // 🔹 CALCULATIONS
-   const totalStockValue = stock.reduce(
-  (sum, item) =>
-    sum +
-    (Number(item.quantityInStock) || 0) *
-    (Number(item.price) || 0),
-  0
-);
+  return () => clearInterval(interval);
+}, [members, stock, sales]);
+
+  // CALCULATIONS
+  const totalStockValue = stock.reduce(
+    (sum, item) =>
+      sum +
+      (Number(item.quantityInStock) || 0) *
+      (Number(item.price) || 0),
+    0
+  );
+
   const totalRevenue = sales.reduce(
     (sum, sale) => sum + (sale.quantity * sale.price),
     0
