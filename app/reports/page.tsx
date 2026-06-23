@@ -125,8 +125,8 @@ export default function ReportsPage() {
     <span
       className={
         sale.type === "SALE"
-          ? "text-red-600 font-bold"
-          : "text-green-600 font-bold"
+          ? "bg-green-600 text-white px-2 py-1 rounded"
+          : "bg-red-600 text-white px-2 py-1 rounded"
       }
     >
       {sale.type}
