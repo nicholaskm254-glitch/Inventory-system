@@ -21,10 +21,6 @@ export default function Home() {
     };
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    window.location.href = "/login";
-  };
 
   const handleUnauthorized = () => {
     localStorage.removeItem("token");
@@ -130,12 +126,7 @@ export default function Home() {
             Inventory Management Dashboard
           </h1>
 
-          <button
-            onClick={logout}
-            className="bg-red-600 text-white px-4 py-2 rounded"
-          >
-            Logout
-          </button>
+          
         </div>
 
         {loading ? (
