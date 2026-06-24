@@ -121,98 +121,67 @@ export default function Home() {
   );
 
   return (
-    <div className="min-h-screen px-3 sm:px-6 lg:px-10">
-      <div className="max-w-7xl mx-auto">
-        <HamburgerMenu />
-
-        <div className="flex justify-between items-center mt-4 mb-6">
+    <div className="p-4">
+      <div className="flex justify-between items-start mt-4 mb-8">
+        <div>
           <h1 className="text-4xl font-bold">
             Inventory Management Dashboard
           </h1>
 
-{user && (
-  <div className="mb-6">
-    <p className="text-lg">
-      Welcome, <strong>{user.fullName}</strong>
-    </p>
+          {user && (
+            <div className="mt-2">
+              <p className="text-lg">
+                Welcome, <strong>{user.fullName}</strong>
+              </p>
 
-    <p className="text-sm text-gray-500">
-      Role: {user.role}
-    </p>
-  </div>
-)}
-
-          
+              <p className="text-sm text-gray-500">
+                Role: {user.role}
+              </p>
+            </div>
+          )}
         </div>
 
-        {loading ? (
-          <p>Loading dashboard...</p>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-background shadow rounded p-4">
-                <h2 className="text-gray-500">
-                  Members
-                </h2>
-                <p className="text-3xl font-bold">
-                  {members.length}
-                </p>
-              </div>
-
-              <div className="bg-background shadow rounded p-4">
-                <h2 className="text-gray-500">
-                  Products
-                </h2>
-                <p className="text-3xl font-bold">
-                  {stock.length}
-                </p>
-              </div>
-
-              <div className="bg-background shadow rounded p-4">
-                <h2 className="text-gray-500">
-                  Sales
-                </h2>
-                <p className="text-3xl font-bold">
-                  {sales.length}
-                </p>
-              </div>
-
-              <div className="bg-background shadow rounded p-4">
-                <h2 className="text-gray-500">
-                  Stock Value
-                </h2>
-                <p className="text-3xl font-bold">
-                  KES{" "}
-                  {totalStockValue.toLocaleString()}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-8 bg-background shadow rounded p-4">
-              <h2 className="text-xl font-bold mb-4">
-                System Summary
-              </h2>
-
-              <p>
-                Total Members: {members.length}
-              </p>
-
-              <p>
-                Total Products: {stock.length}
-              </p>
-
-              <p>
-                Total Sales Recorded: {sales.length}
-              </p>
-
-              <p>
-                Total Revenue: KES{" "}
-                {totalRevenue.toLocaleString()}
-              </p>
-            </div>
-          </>
-        )}
+        <HamburgerMenu />
       </div>
+
+      {loading ? (
+        <p>Loading dashboard...</p>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-background shadow rounded p-4">
+              <h2 className="text-gray-500">Members</h2>
+              <p className="text-3xl font-bold">{members.length}</p>
+            </div>
+
+            <div className="bg-background shadow rounded p-4">
+              <h2 className="text-gray-500">Products</h2>
+              <p className="text-3xl font-bold">{stock.length}</p>
+            </div>
+
+            <div className="bg-background shadow rounded p-4">
+              <h2 className="text-gray-500">Sales</h2>
+              <p className="text-3xl font-bold">{sales.length}</p>
+            </div>
+
+            <div className="bg-background shadow rounded p-4">
+              <h2 className="text-gray-500">Stock Value</h2>
+              <p className="text-3xl font-bold">
+                KES {totalStockValue.toLocaleString()}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-8 bg-background shadow rounded p-4">
+            <h2 className="text-xl font-bold mb-4">System Summary</h2>
+
+            <p>Total Members: {members.length}</p>
+            <p>Total Products: {stock.length}</p>
+            <p>Total Sales Recorded: {sales.length}</p>
+            <p>Total Revenue: KES {totalRevenue.toLocaleString()}</p>
+          </div>
+        </>
+      )}
     </div>
   );
 }
