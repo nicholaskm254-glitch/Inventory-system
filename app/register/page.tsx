@@ -10,35 +10,36 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
 
   const register = async () => {
-    try {
-      const response = await fetch(
-        `${API}/api/Auth/register`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            fullName,
-            email,
-            password,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        alert("Registration failed");
-        return;
+  try {
+    const response = await fetch(
+      `${API}/api/Auth/register`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName,
+          email,
+          password,
+        }),
       }
+    );
 
-      alert("Registration successful");
+    const text = await response.text();
+    console.log("REGISTER RESPONSE:", text);
 
-      window.location.href = "/login";
-    } catch (error) {
-      console.error(error);
-      alert("Registration failed");
+    if (!response.ok) {
+      alert(text);
+      return;
     }
-  };
+
+    alert("Registration successful");
+    window.location.href = "/login";
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   return (
     <div className="min-h-screen flex justify-center items-center">
