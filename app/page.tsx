@@ -4,102 +4,208 @@
 import HamburgerMenu from "@/components/HamburgerMenu";
 import { useEffect, useState } from "react";
 
-const API_BASE = "https://inventory-api-4-wzj2.onrender.com/api";
-
 export default function Home() {
+  const API = process.env.NEXT_PUBLIC_API_URL;
+
   const [members, setMembers] = useState<any[]>([]);
   const [stock, setStock] = useState<any[]>([]);
   const [sales, setSales] = useState<any[]>([]);
-  const isEqual = (a: any[], b: any[]) =>
-  JSON.stringify(a) === JSON.stringify(b);
-useEffect(() => {
-  const loadData = async () => {
-    try {
-      const membersRes = await fetch(`${API_BASE}/members`);
-      const stockRes = await fetch(`${API_BASE}/products`);
-      const salesRes = await fetch(`${API_BASE}/sales`);
+  const [loading, setLoading] = useState(true);
 
-      const membersData = await membersRes.json();
-      const stockData = await stockRes.json();
-      const salesData = await salesRes.json();
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("token");
 
-      if (!isEqual(membersData, members)) setMembers(membersData);
-      if (!isEqual(stockData, stock)) setStock(stockData);
-      if (!isEqual(salesData, sales)) setSales(salesData);
-    } catch (err) {
-      console.log("Dashboard load error:", err);
-    }
+    return {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
   };
 
-  loadData(); // initial load
+  const logout = () => {
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+  };
 
-  const interval = setInterval(() => {
-    loadData(); // refresh every 5 seconds
-  }, 5000);
+  const handleUnauthorized = () => {
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+  };
 
-  return () => clearInterval(interval);
-}, [members, stock, sales]);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
 
-  // CALCULATIONS
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+
+    if (!API) return;
+
+    const loadData = async () => {
+      try {
+        setLoading(true);
+
+        const [membersRes, stockRes, salesRes] =
+          await Promise.all([
+            fetch(`${API}/api/Members`, {
+              headers: getAuthHeaders(),
+            }),
+            fetch(`${API}/api/Products`, {
+              headers: getAuthHeaders(),
+            }),
+            fetch(`${API}/api/Sales`, {
+              headers: getAuthHeaders(),
+            }),
+          ]);
+
+        if (
+          membersRes.status === 401 ||
+          stockRes.status === 401 ||
+          salesRes.status === 401
+        ) {
+          handleUnauthorized();
+          return;
+        }
+
+        const membersData = await membersRes.json();
+        const stockData = await stockRes.json();
+        const salesData = await salesRes.json();
+
+        setMembers(
+          Array.isArray(membersData)
+            ? membersData
+            : []
+        );
+
+        setStock(
+          Array.isArray(stockData)
+            ? stockData
+            : []
+        );
+
+        setSales(
+          Array.isArray(salesData)
+            ? salesData
+            : []
+        );
+      } catch (err) {
+        console.log("Dashboard load error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadData();
+
+    const interval = setInterval(() => {
+      void loadData();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [API]);
+
   const totalStockValue = stock.reduce(
     (sum, item) =>
       sum +
       (Number(item.quantityInStock) || 0) *
-      (Number(item.price) || 0),
+        (Number(item.price) || 0),
     0
   );
 
   const totalRevenue = sales.reduce(
-    (sum, sale) => sum + (sale.quantity * sale.price),
+    (sum, sale) =>
+      sum +
+      (Number(sale.quantity) || 0) *
+        (Number(sale.price) || 0),
     0
   );
 
   return (
     <div className="min-h-screen px-3 sm:px-6 lg:px-10">
-  <div className="max-w-7xl mx-auto">
-      <HamburgerMenu />
+      <div className="max-w-7xl mx-auto">
+        <HamburgerMenu />
 
-      <h1 className="text-4xl font-bold mt-4 mb-6">
-        Inventory Management Dashboard
-      </h1>
+        <div className="flex justify-between items-center mt-4 mb-6">
+          <h1 className="text-4xl font-bold">
+            Inventory Management Dashboard
+          </h1>
 
-      {/* CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-background shadow rounded p-4">
-          <h2 className="text-gray-500">Members</h2>
-          <p className="text-3xl font-bold">{members.length}</p>
+          <button
+            onClick={logout}
+            className="bg-red-600 text-white px-4 py-2 rounded"
+          >
+            Logout
+          </button>
         </div>
 
-        <div className="bg-background shadow rounded p-4">
-          <h2 className="text-gray-500">Products</h2>
-          <p className="text-3xl font-bold">{stock.length}</p>
-        </div>
+        {loading ? (
+          <p>Loading dashboard...</p>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-background shadow rounded p-4">
+                <h2 className="text-gray-500">
+                  Members
+                </h2>
+                <p className="text-3xl font-bold">
+                  {members.length}
+                </p>
+              </div>
 
-        <div className="bg-background shadow rounded p-4">
-          <h2 className="text-gray-500">Sales</h2>
-          <p className="text-3xl font-bold">{sales.length}</p>
-        </div>
+              <div className="bg-background shadow rounded p-4">
+                <h2 className="text-gray-500">
+                  Products
+                </h2>
+                <p className="text-3xl font-bold">
+                  {stock.length}
+                </p>
+              </div>
 
-        <div className="bg-background shadow rounded p-4">
-          <h2 className="text-gray-500">Stock Value</h2>
-          <p className="text-3xl font-bold">
-            KES {totalStockValue}
-          </p>
-        </div>
+              <div className="bg-background shadow rounded p-4">
+                <h2 className="text-gray-500">
+                  Sales
+                </h2>
+                <p className="text-3xl font-bold">
+                  {sales.length}
+                </p>
+              </div>
+
+              <div className="bg-background shadow rounded p-4">
+                <h2 className="text-gray-500">
+                  Stock Value
+                </h2>
+                <p className="text-3xl font-bold">
+                  KES{" "}
+                  {totalStockValue.toLocaleString()}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-8 bg-background shadow rounded p-4">
+              <h2 className="text-xl font-bold mb-4">
+                System Summary
+              </h2>
+
+              <p>
+                Total Members: {members.length}
+              </p>
+
+              <p>
+                Total Products: {stock.length}
+              </p>
+
+              <p>
+                Total Sales Recorded: {sales.length}
+              </p>
+
+              <p>
+                Total Revenue: KES{" "}
+                {totalRevenue.toLocaleString()}
+              </p>
+            </div>
+          </>
+        )}
       </div>
-
-      {/* SUMMARY */}
-      <div className="mt-8 bg-background shadow rounded p-4">
-        <h2 className="text-xl font-bold mb-4">
-          System Summary
-        </h2>
-
-        <p>Total Members: {members.length}</p>
-        <p>Total Products: {stock.length}</p>
-        <p>Total Sales Recorded: {sales.length}</p>
-        <p>Total Revenue: KES {totalRevenue}</p>
-      </div>
-    </div>
     </div>
   );
 }

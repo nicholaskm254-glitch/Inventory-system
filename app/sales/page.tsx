@@ -16,7 +16,26 @@ export default function SalesPage() {
 
   const API = process.env.NEXT_PUBLIC_API_URL;
 
-  // 🔥 LOAD PRODUCTS + SALES
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("token");
+
+    return {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    };
+  };
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+  };
+
+  const handleUnauthorized = () => {
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+  };
+
+  // LOAD PRODUCTS + SALES
   const loadData = useCallback(async () => {
     if (!API) return;
 
@@ -24,9 +43,18 @@ export default function SalesPage() {
       setLoading(true);
 
       const [productsRes, salesRes] = await Promise.all([
-        fetch(`${API}/api/Products`),
-        fetch(`${API}/api/Sales`),
+        fetch(`${API}/api/Products`, {
+          headers: getAuthHeaders(),
+        }),
+        fetch(`${API}/api/Sales`, {
+          headers: getAuthHeaders(),
+        }),
       ]);
+
+      if (productsRes.status === 401 || salesRes.status === 401) {
+        handleUnauthorized();
+        return;
+      }
 
       if (!productsRes.ok || !salesRes.ok) {
         throw new Error("Failed to fetch data");
@@ -45,26 +73,36 @@ export default function SalesPage() {
   }, [API]);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+
     if (!API) return;
 
     void Promise.resolve().then(loadData);
   }, [loadData, API]);
 
-  // 🔥 RECORD SALE
+  // RECORD SALE
   const recordSale = async () => {
     if (!API || !form.productId || !form.quantity) return;
 
     try {
       const res = await fetch(`${API}/api/Sales`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           productId: Number(form.productId),
           quantity: Number(form.quantity),
         }),
       });
+
+      if (res.status === 401) {
+        handleUnauthorized();
+        return;
+      }
 
       const text = await res.text();
       console.log("SALE RESPONSE:", text);
@@ -74,7 +112,10 @@ export default function SalesPage() {
         return;
       }
 
-      setForm({ productId: "", quantity: "" });
+      setForm({
+        productId: "",
+        quantity: "",
+      });
 
       await loadData();
     } catch (err) {
@@ -84,90 +125,137 @@ export default function SalesPage() {
 
   return (
     <div className="min-h-screen sm:px-6 lg:px-10">
-  <div className="max-w-7xl mx-auto">   
-       <HamburgerMenu />
+      <div className="max-w-7xl mx-auto">
+        <HamburgerMenu />
 
-      <h1 className="text-3xl font-bold mb-6">Sales Entry</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">
+            Sales Entry
+          </h1>
 
-      {/* FORM */}
-      <div className="p-4 border rounded mb-6">
-        <select
-          className="border p-2 w-full mb-3"
-          value={form.productId}
-          onChange={(e) =>
-            setForm({ ...form, productId: e.target.value })
-          }
-        >
-          <option value="">Select Product</option>
-
-          {products.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name} (Stock: {p.quantityInStock})
-            </option>
-          ))}
-        </select>
-
-        <input
-          type="number"
-          placeholder="Quantity Sold"
-          className="border p-2 w-full mb-3"
-          value={form.quantity}
-          onChange={(e) =>
-            setForm({ ...form, quantity: e.target.value })
-          }
-        />
-
-        <button
-          onClick={recordSale}
-          className="bg-green-600 text-white px-4 py-2 rounded"
-        >
-          Record Sale
-        </button>
-      </div>
-
-      {/* TABLE */}
-      <h2 className="text-xl font-bold mb-3">Recent Sales</h2>
-
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <div className="overflow-x-auto">
-  <table className="min-w-full border">
-          <thead>
-            <tr>
-              <th className="border p-2">Product</th>
-              <th className="border p-2">Quantity</th>
-              <th className="border p-2">Type</th>
-              <th className="border p-2">Date</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {sales.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="text-center p-4">
-                  No sales recorded
-                </td>
-              </tr>
-            ) : (
-              sales.map((s) => (
-                <tr key={s.id}>
-                  <td className="border p-2">
-                    {s.productName ?? s.productId}
-                  </td>
-                  <td className="border p-2">{s.quantity}</td>
-                  <td className="border p-2">{s.type}</td>
-                  <td className="border p-2">
-                    {s.date ? new Date(s.date).toLocaleString() : ""}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+          <button
+            onClick={logout}
+            className="bg-red-600 text-white px-4 py-2 rounded"
+          >
+            Logout
+          </button>
         </div>
-      )}
-    </div>
+
+        {/* FORM */}
+        <div className="p-4 border rounded mb-6">
+          <select
+            className="border p-2 w-full mb-3"
+            value={form.productId}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                productId: e.target.value,
+              })
+            }
+          >
+            <option value="">
+              Select Product
+            </option>
+
+            {products.map((p) => (
+              <option
+                key={p.id}
+                value={p.id}
+              >
+                {p.name} (Stock: {p.quantityInStock})
+              </option>
+            ))}
+          </select>
+
+          <input
+            type="number"
+            placeholder="Quantity Sold"
+            className="border p-2 w-full mb-3"
+            value={form.quantity}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                quantity: e.target.value,
+              })
+            }
+          />
+
+          <button
+            onClick={recordSale}
+            className="bg-green-600 text-white px-4 py-2 rounded"
+          >
+            Record Sale
+          </button>
+        </div>
+
+        {/* TABLE */}
+        <h2 className="text-xl font-bold mb-3">
+          Recent Sales
+        </h2>
+
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full border">
+              <thead>
+                <tr>
+                  <th className="border p-2">
+                    Product
+                  </th>
+                  <th className="border p-2">
+                    Quantity
+                  </th>
+                  <th className="border p-2">
+                    Type
+                  </th>
+                  <th className="border p-2">
+                    Date
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {sales.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="text-center p-4"
+                    >
+                      No sales recorded
+                    </td>
+                  </tr>
+                ) : (
+                  sales.map((s) => (
+                    <tr key={s.id}>
+                      <td className="border p-2">
+                        {s.productName ??
+                          s.productId}
+                      </td>
+
+                      <td className="border p-2">
+                        {s.quantity}
+                      </td>
+
+                      <td className="border p-2">
+                        {s.type}
+                      </td>
+
+                      <td className="border p-2">
+                        {s.date
+                          ? new Date(
+                              s.date
+                            ).toLocaleString()
+                          : ""}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
