@@ -20,7 +20,11 @@ export default function Home() {
       "Content-Type": "application/json",
     };
   };
-
+  const [user] = useState<any>(() => {
+    if (typeof window === "undefined") return null;
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
 
   const handleUnauthorized = () => {
     localStorage.removeItem("token");
@@ -125,6 +129,18 @@ export default function Home() {
           <h1 className="text-4xl font-bold">
             Inventory Management Dashboard
           </h1>
+
+{user && (
+  <div className="mb-6">
+    <p className="text-lg">
+      Welcome, <strong>{user.fullName}</strong>
+    </p>
+
+    <p className="text-sm text-gray-500">
+      Role: {user.role}
+    </p>
+  </div>
+)}
 
           
         </div>

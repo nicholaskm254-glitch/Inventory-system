@@ -22,6 +22,7 @@ export default function LoginPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          
           email,
           password,
         }),
@@ -34,6 +35,7 @@ export default function LoginPage() {
       const data = await response.json();
 
       localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
 
       window.location.href = "/";
     } catch (err) {
