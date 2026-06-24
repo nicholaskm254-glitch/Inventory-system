@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -8,10 +9,12 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const login = async () => {
     try {
       setLoading(true);
+      setError("");
 
       const response = await fetch(
         `${API}/api/Auth/login`,
@@ -28,63 +31,46 @@ export default function LoginPage() {
       );
 
       if (!response.ok) {
-        alert("Invalid email or password");
-        return;
+        throw new Error("Login failed");
       }
 
       const data = await response.json();
-
       localStorage.setItem("token", data.token);
-
-      window.location.href = "/";
-    } catch (error) {
-      console.error(error);
-      alert("Login failed");
+      window.location.href = "/dashboard";
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="border p-6 rounded w-96">
-        <h1 className="text-2xl font-bold mb-4">
-          Inventory Login
-        </h1>
-
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-md w-96">
+        <h1 className="text-2xl font-bold mb-6">Login</h1>
+        {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
         <input
           type="email"
           placeholder="Email"
-          className="border p-2 w-full mb-3"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded mb-4"
         />
-
         <input
           type="password"
           placeholder="Password"
-          className="border p-2 w-full mb-3"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded mb-4"
         />
-
         <button
           onClick={login}
           disabled={loading}
-          className="bg-blue-600 text-white w-full p-2 rounded"
+          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
         >
           {loading ? "Logging in..." : "Login"}
         </button>
       </div>
-        <p className="mt-4 text-center">
-      Don&apos;t have an account?
-  <a
-    href="/register"
-    className="text-blue-600 ml-1"
-  >
-    Register
-  </a>
-</p>
     </div>
   );
 }
