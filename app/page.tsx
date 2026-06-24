@@ -131,7 +131,8 @@ export default function Home() {
           {user && (
             <div className="mt-2">
               <p className="text-lg">
-                Welcome, <strong>{user.fullName}</strong>
+                Welcome
+               <strong>{user.fullName}😊</strong>
               </p>
 
               <p className="text-sm text-gray-500">
