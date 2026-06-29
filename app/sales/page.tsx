@@ -3,7 +3,6 @@
 
 import { useEffect, useState, useCallback } from "react";
 import HamburgerMenu from "@/components/HamburgerMenu";
-
 export default function SalesPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [sales, setSales] = useState<any[]>([]);
@@ -128,7 +127,7 @@ export default function SalesPage() {
           <h1 className="text-3xl font-bold">
             Sales Entry
           </h1>
-          
+
         </div>
 
         {/* FORM */}
