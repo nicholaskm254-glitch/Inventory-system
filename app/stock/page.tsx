@@ -252,53 +252,63 @@ export default function StockPage() {
           </button>
         </div>
 
-        {/* RESTOCK */}
-        <div className="border p-4 mb-4 rounded">
-          <h2 className="font-semibold mb-3">
-            Restock Product
-          </h2>
 
-          <div className="grid gap-3 md:grid-cols-3">
-            <input
-              className="border p-2"
-              placeholder="Product ID"
-              value={
-                restockForm.productId
-              }
-              onChange={(e) =>
-                setRestockForm({
-                  ...restockForm,
-                  productId:
-                    e.target.value,
-                })
-              }
-            />
+     {/* RESTOCK */}
+<div className="border p-4 mb-4 rounded">
+  <h2 className="font-semibold mb-3">
+    Restock Product
+  </h2>
 
-            <input
-              className="border p-2"
-              type="number"
-              placeholder="Quantity"
-              value={
-                restockForm.quantity
-              }
-              onChange={(e) =>
-                setRestockForm({
-                  ...restockForm,
-                  quantity:
-                    e.target.value,
-                })
-              }
-            />
+  <div className="grid gap-3 md:grid-cols-3">
 
-            <button
-              className="bg-blue-600 text-white p-2 rounded"
-              onClick={addStock}
-            >
-              Add Stock
-            </button>
-          </div>
-        </div>
+    <select
+      className="border p-2"
+      value={restockForm.productId}
+      onChange={(e) =>
+        setRestockForm({
+          ...restockForm,
+          productId: e.target.value,
+        })
+      }
+    >
+      <option value="">
+        Select Product
+      </option>
 
+      {stock.map((product) => (
+        <option
+          key={product.id}
+          value={product.id}
+        >
+          {product.name}
+          {" "}
+          (Current: {product.quantityInStock})
+        </option>
+      ))}
+    </select>
+
+    <input
+      className="border p-2"
+      type="number"
+      placeholder="Quantity"
+      value={restockForm.quantity}
+      onChange={(e) =>
+        setRestockForm({
+          ...restockForm,
+          quantity: e.target.value,
+        })
+      }
+    />
+
+    <button
+      className="bg-blue-600 text-white p-2 rounded"
+      onClick={addStock}
+    >
+      Add Stock
+    </button>
+
+  </div>
+</div>
         {/* SEARCH */}
         <input
           className="border p-2 mb-4 w-full"
